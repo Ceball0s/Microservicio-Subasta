@@ -1,14 +1,11 @@
-package com.irojas.demojwt.Subasta;
+package com.Subasta;
 
-import com.irojas.demojwt.User.User;
-import com.irojas.demojwt.Oferta.Oferta;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Builder
@@ -45,32 +42,16 @@ public class Subasta {
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaCierre;
 
-    @ElementCollection
-    @CollectionTable(name = "subasta_fotos", joinColumns = @JoinColumn(name = "subasta_id"))
-    @Column(name = "ruta")
-    private List<String> fotos;
-
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "user_id", nullable = false)
-    // private User user; // Relación con el usuario propietario del Subasta
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    // @ManyToOne
-    // @JoinColumn(name = "user_oferta_actual_id", nullable = true)
-    // // @JsonBackReference
-    // private User user_oferta_actual;
+    @Column(name = "user_id", nullable = false)
+    private Long user_id; // Identificador del usuario propietario de la subasta
 
     @PrePersist
     public void initializeFields() {
-        // this.user_oferta_actual = null;
-        this.estado = EstadoSubasta.ACTIVA; //
-        this.precioActual = this.precioInicial; // Si deseas que precioActual también inicie igual al precio inicial
+        this.estado = EstadoSubasta.ACTIVA; // Estado inicial de la subasta
+        this.precioActual = this.precioInicial; // Inicializa precioActual igual al precioInicial
     }
 
     public enum EstadoSubasta {
         ACTIVA, FINALIZADA, CANCELADA
     }
-
 }
