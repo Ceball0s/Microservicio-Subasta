@@ -1,0 +1,163 @@
+{
+  "info": {
+    "name": "ofertaya_subasta",
+    "_postman_id": "b6f89f3b-1234-4cde-9a5e-abcdef123456",
+    "description": "Colección de peticiones para microservicio Subasta",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Obtener recomendaciones",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "user-id",
+            "value": "1",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8081/api/subasta/recomendaciones",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api","subasta","recomendaciones"]
+        }
+      }
+    },
+    {
+      "name": "Agregar subasta",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "user-id",
+            "value": "1",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Subasta Ejemplo\",\n  \"descripcion\": \"Descripción de la subasta\",\n  \"aumentoMinimo\": 1000,\n  \"fechaInicio\": \"2025-06-18T00:00:00\",\n  \"fechaFin\": \"2025-06-25T00:00:00\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8081/api/subasta/agregar",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api","subasta","agregar"]
+        }
+      }
+    },
+    {
+      "name": "Consultar subasta por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8081/api/subasta/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api","subasta","1"]
+        }
+      }
+    },
+    {
+      "name": "Modificar subasta",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "user-id",
+            "value": "1",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Subasta Modificada\",\n  \"descripcion\": \"Descripción modificada\",\n  \"aumentoMinimo\": 1500,\n  \"fechaInicio\": \"2025-06-19T00:00:00\",\n  \"fechaFin\": \"2025-06-26T00:00:00\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8081/api/subasta/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api","subasta","1"]
+        }
+      }
+    },
+    {
+      "name": "Finalizar subasta",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "user-id",
+            "value": "1",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8081/api/subasta/finalizar/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api","subasta","finalizar","1"]
+        }
+      }
+    },
+    {
+      "name": "Cancelar subasta",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "user-id",
+            "value": "1",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8081/api/subasta/cancelar/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api","subasta","cancelar","1"]
+        }
+      }
+    },
+    {
+      "name": "Obtener subastas por usuario",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "user-id",
+            "value": "1",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8081/api/subasta/usuario",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api","subasta","usuario"]
+        }
+      }
+    }
+  ],
+  "event": []
+}

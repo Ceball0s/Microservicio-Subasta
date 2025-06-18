@@ -1,10 +1,11 @@
-package com.Subasta;
+package com.Subasta.Models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.Date;
 
 @Data
@@ -14,6 +15,7 @@ import java.util.Date;
 @Entity
 @Table(name = "subasta", schema = "public")
 public class Subasta {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,6 +36,9 @@ public class Subasta {
     @Column()
     private Double precioActual;
 
+    @Column(name = "aumento_minimo", nullable = false)
+    private Double aumentoMinimo;  // <<-- Nuevo atributo
+
     @Column(name = "fecha_creacion")
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaCreacion;
@@ -49,9 +54,5 @@ public class Subasta {
     public void initializeFields() {
         this.estado = EstadoSubasta.ACTIVA; // Estado inicial de la subasta
         this.precioActual = this.precioInicial; // Inicializa precioActual igual al precioInicial
-    }
-
-    public enum EstadoSubasta {
-        ACTIVA, FINALIZADA, CANCELADA
     }
 }

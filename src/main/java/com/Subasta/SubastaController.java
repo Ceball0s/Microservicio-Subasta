@@ -30,7 +30,7 @@ public class SubastaController {
         if (userId == null || userId <= 0) {
             subastas = subastaService.obtenerRecomendacionesGenericas();
         } else {
-            int usuarioId = userId.intValue();
+            //int usuarioId = userId.intValue();
             //subastas = subastaService.obtenerRecomendacionesPersonalizadas(usuarioId);
             subastas = subastaService.obtenerRecomendacionesGenericas();
         }
@@ -46,10 +46,16 @@ public class SubastaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Acceso denegado
         }
 
+        if (request.getAumentoMinimo() == null || request.getAumentoMinimo() <= 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(null); // o lanza una excepción personalizada
+        }
+
         int usuarioId = userId.intValue();
         SubastaDTO subastaGuardado = subastaService.agregarSubasta(request, usuarioId);
         return ResponseEntity.ok(subastaGuardado);
     }
+
 
     @GetMapping("/{subastaId}")
     public ResponseEntity<SubastaDTO> consultarSubasta(@PathVariable int subastaId) {

@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
+import com.Subasta.Models.*;
 @Service
 public class SubastaService {
 
@@ -32,6 +32,7 @@ public class SubastaService {
             .nombre(request.getNombre())
             .descripcion(request.getDescripcion())
             .precioInicial(request.getPrecioInicial())
+            .aumentoMinimo(request.getAumentoMinimo()) // ✅ nuevo campo
             .user_id((long) usuarioId)
             .fechaCreacion(new Date())
             .fechaCierre(request.getFechaCierre() != null ? request.getFechaCierre() : calcularFechaCierrePorDefecto())
@@ -40,6 +41,7 @@ public class SubastaService {
         Subasta subastaGuardado = subastaRepository.save(subasta);
         return new SubastaDTO(subastaGuardado);
     }
+
 
     // Modificar una subasta existente
     public SubastaDTO modificarSubasta(int subastaId, AgregarRequest request, int usuarioId) {
@@ -65,9 +67,6 @@ public class SubastaService {
         if (request.getFechaCierre() != null) {
             subastaExistente.setFechaCierre(request.getFechaCierre());
         }
-        if (request.getEstado() != null) {
-            subastaExistente.setEstado(request.getEstado());
-        }
 
         Subasta subastaModificada = subastaRepository.save(subastaExistente);
         return new SubastaDTO(subastaModificada);
@@ -82,11 +81,11 @@ public class SubastaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permisos para cerrar esta subasta");
         }
 
-        if (subastaExistente.getEstado() != Subasta.EstadoSubasta.ACTIVA) {
+        if (subastaExistente.getEstado() != EstadoSubasta.ACTIVA) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La subasta no está activa y no se puede cerrar");
         }
 
-        subastaExistente.setEstado(Subasta.EstadoSubasta.FINALIZADA);
+        subastaExistente.setEstado(EstadoSubasta.FINALIZADA);
         Subasta subastaCerrada = subastaRepository.save(subastaExistente);
         return new SubastaDTO(subastaCerrada);
     }
@@ -100,11 +99,11 @@ public class SubastaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permisos para cancelar esta subasta");
         }
 
-        if (subastaExistente.getEstado() != Subasta.EstadoSubasta.ACTIVA) {
+        if (subastaExistente.getEstado() != EstadoSubasta.ACTIVA) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La subasta no está activa y no se puede cancelar");
         }
 
-        subastaExistente.setEstado(Subasta.EstadoSubasta.CANCELADA);
+        subastaExistente.setEstado(EstadoSubasta.CANCELADA);
         Subasta subastaCancelada = subastaRepository.save(subastaExistente);
         return new SubastaDTO(subastaCancelada);
     }
