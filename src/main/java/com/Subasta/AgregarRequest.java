@@ -1,5 +1,6 @@
 package com.Subasta;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,6 @@ public class AgregarRequest {
     private String nombre;
     private String descripcion;
     private Double precioInicial;
-    private Double aumentoMinimo; // ✅ Campo necesario para la lógica de ofertas
+    private Double aumentoMinimo;
     private Date fechaCierre;
 }
