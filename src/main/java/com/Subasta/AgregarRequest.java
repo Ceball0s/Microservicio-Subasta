@@ -17,21 +17,4 @@ public class AgregarRequest {
     private Double precioInicial;
     private Double aumentoMinimo; // ✅ Campo necesario para la lógica de ofertas
     private Date fechaCierre;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    private EstadoSubasta estado;
 }
-=======
-}
->>>>>>> Stashed changes
-=======
-}
->>>>>>> Stashed changes
-=======
-}
->>>>>>> Stashed changes
-=======
-}
->>>>>>> Stashed changes

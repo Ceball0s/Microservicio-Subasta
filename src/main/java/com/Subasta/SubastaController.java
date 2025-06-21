@@ -33,23 +33,7 @@ public class SubastaController {
         if (userId == null || userId <= 0) {
             subastas = subastaService.obtenerRecomendacionesGenericas();
         } else {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            int usuarioId = userId.intValue();
-=======
             //int usuarioId = userId.intValue();
->>>>>>> Stashed changes
-=======
-            //int usuarioId = userId.intValue();
->>>>>>> Stashed changes
-=======
-            //int usuarioId = userId.intValue();
->>>>>>> Stashed changes
-=======
-            //int usuarioId = userId.intValue();
->>>>>>> Stashed changes
             //subastas = subastaService.obtenerRecomendacionesPersonalizadas(usuarioId);
             subastas = subastaService.obtenerRecomendacionesGenericas();
         }
