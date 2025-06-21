@@ -1,4 +1,4 @@
-package com.Subaston.Subasta.Subasta;
+package com.Subasta;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

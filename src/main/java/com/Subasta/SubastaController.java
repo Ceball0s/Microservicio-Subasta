@@ -6,6 +6,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.Subasta.Models.SubastaDTO;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,7 +33,15 @@ public class SubastaController {
         if (userId == null || userId <= 0) {
             subastas = subastaService.obtenerRecomendacionesGenericas();
         } else {
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
             int usuarioId = userId.intValue();
+=======
+            //int usuarioId = userId.intValue();
+>>>>>>> Stashed changes
+=======
+            //int usuarioId = userId.intValue();
+>>>>>>> Stashed changes
             //subastas = subastaService.obtenerRecomendacionesPersonalizadas(usuarioId);
             subastas = subastaService.obtenerRecomendacionesGenericas();
         }
@@ -46,10 +57,16 @@ public class SubastaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Acceso denegado
         }
 
+        if (request.getAumentoMinimo() == null || request.getAumentoMinimo() <= 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(null); // o lanza una excepción personalizada
+        }
+
         int usuarioId = userId.intValue();
         SubastaDTO subastaGuardado = subastaService.agregarSubasta(request, usuarioId);
         return ResponseEntity.ok(subastaGuardado);
     }
+
 
     @GetMapping("/{subastaId}")
     public ResponseEntity<SubastaDTO> consultarSubasta(@PathVariable int subastaId) {
