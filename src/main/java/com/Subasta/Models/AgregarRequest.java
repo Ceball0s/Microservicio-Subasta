@@ -1,4 +1,4 @@
-package com.Subasta;
+package com.Subasta.Models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

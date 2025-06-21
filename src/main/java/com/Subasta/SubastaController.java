@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.Subasta.Models.AgregarRequest;
 import com.Subasta.Models.SubastaDTO;
 
 import org.springframework.web.bind.annotation.GetMapping;
