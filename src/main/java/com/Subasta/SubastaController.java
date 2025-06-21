@@ -36,7 +36,11 @@ public class SubastaController {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             int usuarioId = userId.intValue();
+=======
+            //int usuarioId = userId.intValue();
+>>>>>>> Stashed changes
 =======
             //int usuarioId = userId.intValue();
 >>>>>>> Stashed changes
