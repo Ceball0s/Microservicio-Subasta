@@ -19,8 +19,12 @@ public class AgregarRequest {
     private Date fechaCierre;
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     private EstadoSubasta estado;
 }
+=======
+}
+>>>>>>> Stashed changes
 =======
 }
 >>>>>>> Stashed changes

@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 @SpringBootApplication
 public class SubastaApplication {
@@ -13,6 +14,8 @@ public class SubastaApplication {
 	}
 
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -27,6 +30,9 @@ public class SubastaApplication {
         SpringApplication.run(SubastaApplication.class, args);
     }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
