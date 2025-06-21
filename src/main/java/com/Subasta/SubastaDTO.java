@@ -1,5 +1,6 @@
 package com.Subasta;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +22,9 @@ public class SubastaDTO {
     private Double precioInicial;
     private Double precioActual;
     private Double aumentoMinimo; // ✅ nuevo campo
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private Date fechaCreacion;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private Date fechaCierre;
     private String estado;
     private Long userId;
