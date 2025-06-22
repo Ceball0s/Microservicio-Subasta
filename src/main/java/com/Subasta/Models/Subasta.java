@@ -58,4 +58,20 @@ public class Subasta {
         this.estado = EstadoSubasta.ACTIVA; // Estado inicial de la subasta
         this.precioActual = this.precioInicial; // Inicializa precioActual igual al precioInicial
     }
+
+    // Constructor personalizado sin chatRoomId
+    public Subasta(Long id, String nombre, EstadoSubasta estado, String descripcion,
+                Double precioInicial, Double precioActual, Double aumentoMinimo,
+                Date fechaCreacion, Date fechaCierre, Long user_id) {
+        this.id = id;
+        this.nombre = nombre;
+        this.estado = estado;
+        this.descripcion = descripcion;
+        this.precioInicial = precioInicial;
+        this.precioActual = precioActual;
+        this.aumentoMinimo = aumentoMinimo;
+        this.fechaCreacion = fechaCreacion;
+        this.fechaCierre = fechaCierre;
+        this.user_id = user_id;
+    }
 }
