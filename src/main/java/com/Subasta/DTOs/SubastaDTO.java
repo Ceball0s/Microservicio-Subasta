@@ -1,4 +1,4 @@
-package com.Subasta.Models;
+package com.Subasta.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+
+import com.Subasta.Models.EstadoSubasta;
+import com.Subasta.Models.Subasta;
 
 @Data
 @Builder
@@ -22,6 +25,8 @@ public class SubastaDTO {
     private Date fechaCierre;
     private String estado;
     private Long userId;
+    private String chatRoomId;
+
 
     public SubastaDTO(Subasta subasta) {
         this.id = subasta.getId();
@@ -33,6 +38,7 @@ public class SubastaDTO {
         this.fechaCreacion = subasta.getFechaCreacion();
         this.fechaCierre = subasta.getFechaCierre();
         this.userId = subasta.getUser_id();
+        this.chatRoomId = subasta.getChatRoomId();
 
         // O puedes usar: this.estado = subasta.getEstado().name();
         if (subasta.getEstado() == EstadoSubasta.ACTIVA) {

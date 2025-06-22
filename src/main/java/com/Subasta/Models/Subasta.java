@@ -50,6 +50,9 @@ public class Subasta {
     @Column(name = "user_id", nullable = false)
     private Long user_id; // Identificador del usuario propietario de la subasta
 
+    @Column(name = "chat_room_id")
+    private String chatRoomId;
+
     @PrePersist
     public void initializeFields() {
         this.estado = EstadoSubasta.ACTIVA; // Estado inicial de la subasta

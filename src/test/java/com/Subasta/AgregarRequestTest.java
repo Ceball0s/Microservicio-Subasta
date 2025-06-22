@@ -3,7 +3,7 @@ package com.Subasta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.Subasta.Models.AgregarRequest;
+import com.Subasta.DTOs.AgregarRequest;
 
 import java.util.Date;
 

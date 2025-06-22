@@ -1,10 +1,10 @@
 package com.Subasta;
 
+import com.Subasta.DTOs.SubastaDTO;
 import com.Subasta.Models.EstadoSubasta;
 import com.Subasta.Models.Subasta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.Subasta.Models.SubastaDTO;
 
 import java.util.Date;
 

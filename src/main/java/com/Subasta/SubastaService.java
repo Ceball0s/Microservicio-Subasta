@@ -5,14 +5,32 @@ import java.util.Date;
 import java.util.Calendar;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.Subasta.Clients.ChatClient;
+import com.Subasta.Clients.OfertaClient;
+import com.Subasta.Clients.PedidoClient;
+import com.Subasta.DTOs.AgregarRequest;
+import com.Subasta.DTOs.CrearPedidoRequest;
+import com.Subasta.DTOs.OfertaDTO;
+import com.Subasta.DTOs.SubastaDTO;
 import com.Subasta.Models.*;
 @Service
 public class SubastaService {
 
     private final SubastaRepository subastaRepository;
+    
+    @Autowired
+    private ChatClient chatClient;
+
+    @Autowired
+    private OfertaClient ofertaClient;
+
+    @Autowired
+    private PedidoClient pedidoClient;
 
     public SubastaService(SubastaRepository subastaRepository) {
         this.subastaRepository = subastaRepository;
@@ -37,7 +55,10 @@ public class SubastaService {
             .fechaCreacion(new Date())
             .fechaCierre(request.getFechaCierre() != null ? request.getFechaCierre() : calcularFechaCierrePorDefecto())
             .build();
-
+        
+        // Crear sala de chat
+        String chatRoomId = chatClient.crearSalaChat(String.valueOf(usuarioId)).getRoomId();
+        subasta.setChatRoomId(chatRoomId);
         Subasta subastaGuardado = subastaRepository.save(subasta);
         return new SubastaDTO(subastaGuardado);
     }
@@ -86,8 +107,20 @@ public class SubastaService {
         }
 
         subastaExistente.setEstado(EstadoSubasta.FINALIZADA);
-        Subasta subastaCerrada = subastaRepository.save(subastaExistente);
-        return new SubastaDTO(subastaCerrada);
+        Subasta subasta = subastaRepository.save(subastaExistente);
+        // 🔗 Obtener mejor oferta desde el microservicio de Oferta
+        OfertaDTO mejorOferta = ofertaClient.obtenerMejorOfertaPorSubasta(subasta.getId());
+
+        // 📨 Crear pedido en Pedido_Rastreo
+        CrearPedidoRequest request = new CrearPedidoRequest();
+        request.setIdComprador(mejorOferta.getUserId());
+        request.setIdVendedor(subasta.getUser_id());
+        request.setNombreProducto(subasta.getNombre());
+        request.setDescripcionProducto(subasta.getDescripcion());
+        request.setPrecioFinal(mejorOferta.getMonto());
+
+        pedidoClient.crearPedido(request);
+        return new SubastaDTO(subasta);
     }
 
     // Cancelar una subasta
