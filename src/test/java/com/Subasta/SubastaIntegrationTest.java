@@ -159,8 +159,9 @@ class SubastaIntegrationTest {
         request.setNombre("Subasta No Autorizada");
         request.setPrecioInicial(100.0);
         request.setAumentoMinimo(10.0);
+        request.setFechaCierre(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)));
 
-        mockMvc.perform(put("/api/subasta/modificar/1")
+        mockMvc.perform(put("/api/subasta/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("user-id", "2")
                 .content(objectMapper.writeValueAsString(request)))

@@ -17,5 +17,7 @@ public class AgregarRequest {
     private String descripcion;
     private Double precioInicial;
     private Double aumentoMinimo;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Date fechaCierre;
 }
