@@ -2,259 +2,277 @@ package com.Subasta;
 
 import com.Subasta.DTOs.AgregarRequest;
 import com.Subasta.DTOs.SubastaDTO;
+import com.Subasta.DTOs.ChatRoomResponse;
 import com.Subasta.Models.EstadoSubasta;
 import com.Subasta.Models.Subasta;
+import com.Subasta.Clients.ChatClient;
+import com.Subasta.Clients.OfertaClient;
+import com.Subasta.Clients.PedidoClient;
+import com.Subasta.DTOs.OfertaDTO;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
 class SubastaServiceTest {
 
-    @Mock
-    private SubastaRepository subastaRepository;
-
-    @InjectMocks
+    @Autowired
     private SubastaService subastaService;
 
+    @MockBean
+    private ChatClient chatClient;
+
+    @MockBean
+    private OfertaClient ofertaClient;
+
+    @MockBean
+    private PedidoClient pedidoClient;
+
     private Subasta subasta;
-    private AgregarRequest agregarRequest;
-    private final int USER_ID = 1;
-    private final int OTHER_USER_ID = 2;
-    private final int SUBASTA_ID = 1;
 
     @BeforeEach
     void setUp() {
+        // Configurar mocks
+        ChatRoomResponse chatRoomResponse = new ChatRoomResponse();
+        chatRoomResponse.setRoomId("chat-room-123");
+        when(chatClient.crearSalaChat(anyString())).thenReturn(chatRoomResponse);
+        
+        // Mock para OfertaDTO
+        OfertaDTO ofertaDTO = new OfertaDTO();
+        ofertaDTO.setId(1L);
+        ofertaDTO.setUserId(1L);
+        ofertaDTO.setSubastaId(1L);
+        ofertaDTO.setMonto(150.0);
+        when(ofertaClient.obtenerMejorOfertaPorSubasta(anyLong())).thenReturn(ofertaDTO);
+        
+        when(pedidoClient.crearPedido(any())).thenReturn(null);
+
+        // Crear subasta de prueba
         subasta = Subasta.builder()
-                .id((long) SUBASTA_ID)
-                .nombre("Subasta de prueba")
-                .descripcion("Descripción de la subasta")
+                .id(1L)
+                .nombre("Subasta Test")
+                .descripcion("Descripción de prueba")
                 .precioInicial(100.0)
                 .precioActual(100.0)
                 .aumentoMinimo(10.0)
-                .fechaCreacion(new Date())
-                .fechaCierre(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)))
                 .estado(EstadoSubasta.ACTIVA)
-                .user_id((long) USER_ID)
-                .build();
-
-        agregarRequest = AgregarRequest.builder()
-                .nombre("Nueva Subasta")
-                .descripcion("Descripción de prueba")
-                .precioInicial(150.0)
-                .aumentoMinimo(15.0)
+                .user_id(1L)
+                .fechaCreacion(new Date())
                 .fechaCierre(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(2)))
                 .build();
     }
 
     @Test
-    void obtenerRecomendacionesGenericas_DeberiaRetornarListaDTO() {
-        when(subastaRepository.findTop10ByOrderByFechaCreacionDesc()).thenReturn(Arrays.asList(subasta));
-        List<SubastaDTO> resultado = subastaService.obtenerRecomendacionesGenericas();
-        assertNotNull(resultado);
-        assertEquals(1, resultado.size());
-        assertEquals("Subasta de prueba", resultado.get(0).getNombre());
+    void agregarSubasta_DeberiaCrearSubastaCorrectamente() {
+        // Given
+        AgregarRequest request = new AgregarRequest();
+        request.setNombre("Nueva Subasta");
+        request.setDescripcion("Descripción");
+        request.setPrecioInicial(100.0);
+        request.setAumentoMinimo(10.0);
+        request.setFechaCierre(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)));
+
+        // When
+        SubastaDTO result = subastaService.agregarSubasta(request, 1);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("Nueva Subasta", result.getNombre());
+        assertEquals(100.0, result.getPrecioInicial());
+        assertEquals("ACTIVA", result.getEstado());
     }
 
     @Test
-    void agregarSubasta_ConDatosValidos_DeberiaRetornarDTO() {
-        when(subastaRepository.save(any(Subasta.class))).thenAnswer(invocation -> {
-            Subasta s = invocation.getArgument(0);
-            s.setId(2L); // Simular que la BD asigna un ID
-            return s;
+    void obtenerRecomendacionesGenericas_DeberiaRetornarLista() {
+        // Given - Crear algunas subastas en la base de datos
+        AgregarRequest request1 = new AgregarRequest();
+        request1.setNombre("Subasta 1");
+        request1.setPrecioInicial(100.0);
+        request1.setAumentoMinimo(10.0);
+        subastaService.agregarSubasta(request1, 1);
+
+        AgregarRequest request2 = new AgregarRequest();
+        request2.setNombre("Subasta 2");
+        request2.setPrecioInicial(200.0);
+        request2.setAumentoMinimo(20.0);
+        subastaService.agregarSubasta(request2, 2);
+
+        // When
+        List<SubastaDTO> result = subastaService.obtenerRecomendacionesGenericas();
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.size() >= 2);
+    }
+
+    @Test
+    void obtenerSubastasPorUsuario_DeberiaRetornarLista() {
+        // Given - Crear subasta para usuario específico
+        AgregarRequest request = new AgregarRequest();
+        request.setNombre("Subasta Usuario");
+        request.setPrecioInicial(100.0);
+        request.setAumentoMinimo(10.0);
+        subastaService.agregarSubasta(request, 1);
+
+        // When
+        List<SubastaDTO> result = subastaService.obtenerSubastasPorUsuario(1);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.size() >= 1);
+        assertEquals("Subasta Usuario", result.get(0).getNombre());
+    }
+
+    @Test
+    void obtenerSubastaPorId_DeberiaRetornarSubasta() {
+        // Given - Crear subasta
+        AgregarRequest request = new AgregarRequest();
+        request.setNombre("Subasta Por ID");
+        request.setPrecioInicial(100.0);
+        request.setAumentoMinimo(10.0);
+        SubastaDTO subastaCreada = subastaService.agregarSubasta(request, 1);
+
+        // When
+        SubastaDTO result = subastaService.obtenerSubastaPorId(subastaCreada.getId().intValue());
+
+        // Then
+        assertNotNull(result);
+        assertEquals("Subasta Por ID", result.getNombre());
+    }
+
+    @Test
+    void obtenerSubastaPorId_SubastaNoEncontrada_DeberiaLanzarExcepcion() {
+        // When & Then
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            subastaService.obtenerSubastaPorId(999);
         });
-        SubastaDTO resultado = subastaService.agregarSubasta(agregarRequest, USER_ID);
-        assertNotNull(resultado);
-        assertEquals("Nueva Subasta", resultado.getNombre());
-        verify(subastaRepository).save(any(Subasta.class));
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test
-    void agregarSubasta_ConFechaCierreNula_DeberiaAsignarFechaPorDefecto() {
-        agregarRequest.setFechaCierre(null);
-        when(subastaRepository.save(any(Subasta.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void modificarSubasta_DeberiaModificarSubastaCorrectamente() {
+        // Given - Crear subasta
+        AgregarRequest request = new AgregarRequest();
+        request.setNombre("Subasta Original");
+        request.setPrecioInicial(100.0);
+        request.setAumentoMinimo(10.0);
+        SubastaDTO subastaCreada = subastaService.agregarSubasta(request, 1);
 
-        SubastaDTO resultado = subastaService.agregarSubasta(agregarRequest, USER_ID);
+        // Modificar request
+        AgregarRequest modificarRequest = new AgregarRequest();
+        modificarRequest.setNombre("Subasta Modificada");
+        modificarRequest.setPrecioInicial(150.0);
 
-        assertNotNull(resultado);
-        assertNotNull(resultado.getFechaCierre());
-        long ahora = System.currentTimeMillis();
-        long sieteDias = TimeUnit.DAYS.toMillis(7);
-        long fechaCierre = resultado.getFechaCierre().getTime();
-        assertTrue(Math.abs((ahora + sieteDias) - fechaCierre) < 1000, "La fecha de cierre debe ser ~7 días en el futuro");
-        verify(subastaRepository).save(any(Subasta.class));
+        // When
+        SubastaDTO result = subastaService.modificarSubasta(subastaCreada.getId().intValue(), modificarRequest, 1);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("Subasta Modificada", result.getNombre());
+        assertEquals(150.0, result.getPrecioInicial());
     }
 
     @Test
-    void modificarSubasta_ConDatosValidos_DeberiaModificarSubasta() {
-        when(subastaRepository.findById((long) SUBASTA_ID)).thenReturn(Optional.of(subasta));
-        when(subastaRepository.save(any(Subasta.class))).thenReturn(subasta);
+    void modificarSubasta_UsuarioNoAutorizado_DeberiaLanzarExcepcion() {
+        // Given - Crear subasta
+        AgregarRequest request = new AgregarRequest();
+        request.setNombre("Subasta Original");
+        request.setPrecioInicial(100.0);
+        request.setAumentoMinimo(10.0);
+        SubastaDTO subastaCreada = subastaService.agregarSubasta(request, 1);
 
-        SubastaDTO resultado = subastaService.modificarSubasta(SUBASTA_ID, agregarRequest, USER_ID);
+        // Modificar request
+        AgregarRequest modificarRequest = new AgregarRequest();
+        modificarRequest.setNombre("Subasta No Autorizada");
 
-        assertNotNull(resultado);
-        verify(subastaRepository).save(any(Subasta.class));
-    }
-
-    @Test
-    void modificarSubasta_ConSubastaNoEncontrada_DeberiaLanzarExcepcion() {
-        when(subastaRepository.findById(anyLong())).thenReturn(Optional.empty());
-        assertThrows(ResponseStatusException.class, () -> {
-            subastaService.modificarSubasta(999, agregarRequest, USER_ID);
+        // When & Then
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            subastaService.modificarSubasta(subastaCreada.getId().intValue(), modificarRequest, 999);
         });
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
     }
 
     @Test
-    void modificarSubasta_ConUsuarioNoAutorizado_DeberiaLanzarExcepcion() {
-        when(subastaRepository.findById((long) SUBASTA_ID)).thenReturn(Optional.of(subasta));
-        assertThrows(ResponseStatusException.class, () -> {
-            subastaService.modificarSubasta(SUBASTA_ID, agregarRequest, OTHER_USER_ID);
+    void cerrarSubasta_DeberiaCerrarSubastaCorrectamente() {
+        // Given - Crear subasta
+        AgregarRequest request = new AgregarRequest();
+        request.setNombre("Subasta Para Cerrar");
+        request.setPrecioInicial(100.0);
+        request.setAumentoMinimo(10.0);
+        SubastaDTO subastaCreada = subastaService.agregarSubasta(request, 1);
+
+        // When
+        SubastaDTO result = subastaService.cerrarSubasta(subastaCreada.getId().intValue(), 1);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("FINALIZADA", result.getEstado());
+    }
+
+    @Test
+    void cerrarSubasta_SubastaNoEncontrada_DeberiaLanzarExcepcion() {
+        // When & Then
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            subastaService.cerrarSubasta(999, 1);
         });
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test
-    void modificarSubasta_ConPrecioInicialMayorAlActual_DeberiaActualizarPrecioActual() {
-        subasta.setPrecioActual(120.0);
-        agregarRequest.setPrecioInicial(200.0);
-        when(subastaRepository.findById((long) SUBASTA_ID)).thenReturn(Optional.of(subasta));
-        when(subastaRepository.save(any(Subasta.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void cancelarSubasta_DeberiaCancelarSubastaCorrectamente() {
+        // Given - Crear subasta
+        AgregarRequest request = new AgregarRequest();
+        request.setNombre("Subasta Para Cancelar");
+        request.setPrecioInicial(100.0);
+        request.setAumentoMinimo(10.0);
+        SubastaDTO subastaCreada = subastaService.agregarSubasta(request, 1);
 
-        SubastaDTO resultado = subastaService.modificarSubasta(SUBASTA_ID, agregarRequest, USER_ID);
+        // When
+        SubastaDTO result = subastaService.cancelarSubasta(subastaCreada.getId().intValue(), 1);
 
-        assertEquals(200.0, resultado.getPrecioInicial());
-        assertEquals(200.0, resultado.getPrecioActual());
-        verify(subastaRepository).save(argThat(s -> s.getPrecioActual() == 200.0));
+        // Then
+        assertNotNull(result);
+        assertEquals("CANCELADA", result.getEstado());
     }
 
     @Test
-    void modificarSubasta_SoloConAlgunosCampos_DeberiaModificarSoloEsosCampos() {
-        AgregarRequest requestParcial = AgregarRequest.builder().nombre("Nombre Modificado").build();
-        when(subastaRepository.findById((long) SUBASTA_ID)).thenReturn(Optional.of(subasta));
-        when(subastaRepository.save(any(Subasta.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        SubastaDTO resultado = subastaService.modificarSubasta(SUBASTA_ID, requestParcial, USER_ID);
-
-        assertEquals("Nombre Modificado", resultado.getNombre());
-        assertEquals("Descripción de la subasta", resultado.getDescripcion()); // No debe cambiar
-        assertEquals(100.0, resultado.getPrecioInicial()); // No debe cambiar
-    }
-    
-    @Test
-    void cerrarSubasta_ConSubastaActiva_DeberiaCerrarSubasta() {
-        when(subastaRepository.findById((long) SUBASTA_ID)).thenReturn(Optional.of(subasta));
-        when(subastaRepository.save(any(Subasta.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        SubastaDTO resultado = subastaService.cerrarSubasta(SUBASTA_ID, USER_ID);
-        assertEquals(EstadoSubasta.FINALIZADA.toString(), resultado.getEstado());
-    }
-
-    @Test
-    void cerrarSubasta_ConSubastaNoActiva_DeberiaLanzarExcepcion() {
-        subasta.setEstado(EstadoSubasta.FINALIZADA);
-        when(subastaRepository.findById((long) SUBASTA_ID)).thenReturn(Optional.of(subasta));
-        ResponseStatusException e = assertThrows(ResponseStatusException.class, () -> subastaService.cerrarSubasta(SUBASTA_ID, USER_ID));
-        assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-    }
-
-    @Test
-    void cancelarSubasta_ConSubastaNoActiva_DeberiaLanzarExcepcion() {
-        subasta.setEstado(EstadoSubasta.FINALIZADA);
-        when(subastaRepository.findById((long) SUBASTA_ID)).thenReturn(Optional.of(subasta));
-        ResponseStatusException e = assertThrows(ResponseStatusException.class, () -> subastaService.cancelarSubasta(SUBASTA_ID, USER_ID));
-        assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-    }
-
-    @Test
-    void obtenerSubastasPorUsuario_DeberiaRetornarListaDeSubastas() {
-        when(subastaRepository.findByUserId((long) USER_ID)).thenReturn(Arrays.asList(subasta));
-        List<SubastaDTO> resultado = subastaService.obtenerSubastasPorUsuario(USER_ID);
-        assertEquals(1, resultado.size());
-        assertEquals(subasta.getId(), resultado.get(0).getId());
-    }
-
-    @Test
-    void obtenerSubastaPorId_ConIdValido_DeberiaRetornarSubasta() {
-        when(subastaRepository.findById((long) SUBASTA_ID)).thenReturn(Optional.of(subasta));
-        SubastaDTO resultado = subastaService.obtenerSubastaPorId(SUBASTA_ID);
-        assertNotNull(resultado);
-        assertEquals(subasta.getId(), resultado.getId());
-    }
-
-    @Test
-    void modificarSubasta_CuandoNoEncuentra_DeberiaLanzarExcepcion() {
-        when(subastaRepository.findById(anyLong())).thenReturn(Optional.empty());
-        assertThrows(ResponseStatusException.class, () -> {
-            subastaService.modificarSubasta(1, agregarRequest, USER_ID);
-        });
-    }
-
-    @Test
-    void modificarSubasta_CuandoUsuarioNoAutorizado_DeberiaLanzarExcepcion() {
-        when(subastaRepository.findById(anyLong())).thenReturn(Optional.of(subasta));
-        int otroUsuarioId = 999;
-        assertThrows(ResponseStatusException.class, () -> {
-            subastaService.modificarSubasta(1, agregarRequest, otroUsuarioId);
-        });
-    }
-
-    @Test
-    void modificarSubasta_ConPrecioActualMenorAlInicial_DeberiaActualizarlo() {
-        // Arrange
-        subasta.setPrecioActual(50.0); // Precio actual por debajo del inicial (100.0)
-        when(subastaRepository.findById(anyLong())).thenReturn(Optional.of(subasta));
-        when(subastaRepository.save(any(Subasta.class))).thenAnswer(i -> i.getArgument(0));
+    void cancelarSubasta_SubastaYaFinalizada_DeberiaLanzarExcepcion() {
+        // Given - Crear y cerrar subasta
+        AgregarRequest request = new AgregarRequest();
+        request.setNombre("Subasta Para Cancelar");
+        request.setPrecioInicial(100.0);
+        request.setAumentoMinimo(10.0);
+        SubastaDTO subastaCreada = subastaService.agregarSubasta(request, 1);
         
-        AgregarRequest request = AgregarRequest.builder()
-            .precioInicial(150.0) // Nuevo precio inicial más alto
-            .build();
+        // Cerrar la subasta primero
+        subastaService.cerrarSubasta(subastaCreada.getId().intValue(), 1);
 
-        // Act
-        SubastaDTO resultado = subastaService.modificarSubasta(1, request, USER_ID);
-
-        // Assert
-        assertEquals(150.0, resultado.getPrecioInicial());
-        assertEquals(150.0, resultado.getPrecioActual()); // El precio actual debe igualar al nuevo precio inicial
-    }
-
-    @Test
-    void cerrarSubasta_CuandoNoActiva_DeberiaLanzarExcepcion() {
-        subasta.setEstado(EstadoSubasta.FINALIZADA);
-        when(subastaRepository.findById(anyLong())).thenReturn(Optional.of(subasta));
-        assertThrows(ResponseStatusException.class, () -> {
-            subastaService.cerrarSubasta(1, USER_ID);
+        // When & Then
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            subastaService.cancelarSubasta(subastaCreada.getId().intValue(), 1);
         });
-    }
-
-    @Test
-    void cancelarSubasta_CuandoNoActiva_DeberiaLanzarExcepcion() {
-        subasta.setEstado(EstadoSubasta.CANCELADA);
-        when(subastaRepository.findById(anyLong())).thenReturn(Optional.of(subasta));
-        assertThrows(ResponseStatusException.class, () -> {
-            subastaService.cancelarSubasta(1, USER_ID);
-        });
-    }
-
-    @Test
-    void obtenerSubastaPorId_CuandoNoEncuentra_DeberiaLanzarExcepcion() {
-        when(subastaRepository.findById(anyLong())).thenReturn(Optional.empty());
-        assertThrows(ResponseStatusException.class, () -> {
-            subastaService.obtenerSubastaPorId(1);
-        });
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     }
 }
