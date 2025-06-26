@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "oferta")
 public interface OfertaClient {
 
-    @GetMapping("/subasta/mejor/{subastaId}")
+    @GetMapping("/ofertas/subasta/mejor/{subastaId}")
     OfertaDTO obtenerMejorOfertaPorSubasta(@PathVariable("subastaId") Long subastaId);
 }

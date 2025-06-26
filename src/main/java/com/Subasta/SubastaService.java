@@ -18,6 +18,8 @@ import com.Subasta.DTOs.CrearPedidoRequest;
 import com.Subasta.DTOs.OfertaDTO;
 import com.Subasta.DTOs.SubastaDTO;
 import com.Subasta.Models.*;
+import feign.FeignException;
+
 @Service
 public class SubastaService {
 
@@ -108,18 +110,25 @@ public class SubastaService {
 
         subastaExistente.setEstado(EstadoSubasta.FINALIZADA);
         Subasta subasta = subastaRepository.save(subastaExistente);
-        // 🔗 Obtener mejor oferta desde el microservicio de Oferta
-        OfertaDTO mejorOferta = ofertaClient.obtenerMejorOfertaPorSubasta(subasta.getId());
+        
+        try {
+            // 🔗 Obtener mejor oferta desde el microservicio de Oferta
+            OfertaDTO mejorOferta = ofertaClient.obtenerMejorOfertaPorSubasta(subasta.getId());
 
-        // 📨 Crear pedido en Pedido_Rastreo
-        CrearPedidoRequest request = new CrearPedidoRequest();
-        request.setIdComprador(mejorOferta.getUserId());
-        request.setIdVendedor(subasta.getUser_id());
-        request.setNombreProducto(subasta.getNombre());
-        request.setDescripcionProducto(subasta.getDescripcion());
-        request.setPrecioFinal(mejorOferta.getMonto());
+            // 📨 Crear pedido en Pedido_Rastreo
+            CrearPedidoRequest request = new CrearPedidoRequest();
+            request.setIdComprador(mejorOferta.getUserId());
+            request.setIdVendedor(subasta.getUser_id());
+            request.setNombreProducto(subasta.getNombre());
+            request.setDescripcionProducto(subasta.getDescripcion());
+            request.setPrecioFinal(mejorOferta.getMonto());
 
-        pedidoClient.crearPedido(request);
+            pedidoClient.crearPedido(request);
+        } catch (FeignException.NotFound e) {
+            // No hay ofertas para esta subasta, se cierra sin crear pedido
+            // Esto es válido para subastas sin pujas
+        }
+        
         return new SubastaDTO(subasta);
     }
 
